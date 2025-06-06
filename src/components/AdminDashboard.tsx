@@ -22,7 +22,15 @@ const AdminDashboard: React.FC = () => {
       .then(res => setTotalViews(res.data.total_website_views))
       .catch(() => setTotalViews(null));
     apiClient.get('/comments')
-      .then(res => setComments(res.data))
+      .then(res => {
+        // Map backend fields to frontend fields for display
+        setComments(res.data.map((c: any) => ({
+          id: c._id,
+          username: c.username,
+          comment_text: c.comment_text,
+          created_at: c.created_at
+        })));
+      })
       .catch(() => setComments([]));
 
     // Cập nhật nội dung trang khi selectedPage thay đổi
@@ -33,7 +41,7 @@ const AdminDashboard: React.FC = () => {
   }, [selectedPage, contentPages]);
 
   // Hàm xử lý xóa bình luận
-  const handleDeleteComment = (commentId: number) => {
+  const handleDeleteComment = (commentId: string) => {
     apiClient.delete(`/comments/${commentId}`)
       .then(() => setComments(comments.filter(comment => comment.id !== commentId)))
       .catch(() => alert('Xóa bình luận thất bại.'));
@@ -154,10 +162,12 @@ const AdminDashboard: React.FC = () => {
                 }}
               >
                 <div>
-                  <p style={{ margin: '0', fontWeight: 'bold', color: '#424242' }}>{comment.author}</p>
-                  <p style={{ margin: '5px 0 0 0', color: '#616161' }}>"{comment.text}"</p>
+                  <p style={{ margin: '0', fontWeight: 'bold', color: '#424242' }}>{comment.username}</p>
+                  <p style={{ margin: '5px 0 0 0', color: '#616161' }}>
+                    "{comment.comment_text}"
+                  </p>
                   <p style={{ margin: '5px 0 0 0', fontSize: '0.85rem', color: '#9e9e9e' }}>
-                    Ngày: {comment.date}
+                    Ngày: {comment.created_at ? new Date(comment.created_at).toLocaleString() : ''}
                   </p>
                 </div>
                 <button
